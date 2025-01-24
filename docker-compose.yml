@@ -1,0 +1,47 @@
+version: '3.9'
+
+services:
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/mydb  # Replace "mydb" with your database name
+    depends_on:
+    - mongo
+    volumes:
+      - ./backend:/usr/src/app
+    networks:
+    - app-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/usr/src/app
+    # stdin_open: true
+    # tty: true
+
+volumes:
+  mongo-data:   # Define the volume here
+    driver: local  # Use the local driver to store data on the host
+
+networks:
+  app-network:
+    driver: bridge
